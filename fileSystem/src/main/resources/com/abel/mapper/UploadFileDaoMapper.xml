@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.abel.dao.UploadFileDao">
+	<resultMap type="com.abel.bean.UploadFile" id="UploadFileMapper">
+		<id column="id" property="id"></id>
+		<result column="file_name" property="fileName"></result>
+		<result column="file_type" property="fileType"></result>
+		<result column="file_path" property="filePath"></result>
+		<result column="upload_time" property="uploadTime"></result>
+		<result column="flag" property="flag"></result>
+		<result column="file_size" property="fileSize"></result>
+	</resultMap>
+	
+	<sql id="queryCondition">
+		<where>
+			<if test = "id != null and id != '' ">
+				and id = #{id},
+			</if>
+			<if test = "fileName != null and fileName != '' ">
+				and file_name = #{fileName},
+			</if>
+			<if test = "fileType != null and fileType != '' ">
+				and file_type = #{fileType},
+			</if>
+			<if test = "filePath != null and filePath != '' ">
+				and file_path = #{filePath},
+			</if>
+			<if test = "uploadTime != null and uploadTime != '' ">
+				and upload_time = #{uploadTime},
+			</if>
+			<if test = "flag != null and flag != '' ">
+				and flag = #{flag},
+			</if>
+			<if test = "fileSize != null and fileSize != '' ">
+				and fileSize = #{fileSize},
+			</if>
+		</where>
+	</sql>
+
+	<sql id="getFileListQuery">
+		<choose>
+			<when test="fileId != null and fileId !=''">
+				upload_file WHERE id=#{fileId}
+			</when>
+			<when test="relationId !=null and relationId !=''">
+				(SELECT file_id FROM
+				relation_file
+				WHERE relation_id
+				=#{relationId}
+				and FLAG=#{flag}
+				)file
+				LEFT JOIN
+				upload_file
+				ON
+				file.file_id=upload_file.id
+			</when>
+		</choose>
+	</sql>
+	
+	<select id="getByMap" parameterType="map" resultMap="UploadFileMapper">
+		SELECT * from upload_file
+		<include refid="queryCondition"></include>	
+	</select>
+	
+	<select id="getById" parameterType="Integer" resultMap="UploadFileMapper">
+		SELECT * from upload_file
+		WHERE id = #{id}
+	</select>
+	
+	<insert id="create" parameterType="com.abel.bean.UploadFile">
+		<selectKey resultType="int" order="AFTER" keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO upload_file(
+			file_name,
+			file_type,
+			file_path,
+			upload_time,
+			flag,
+			file_size
+		)
+		VALUES(
+			#{fileName},
+			#{fileType},
+			#{filePath},
+			#{uploadTime},
+			#{flag},
+			#{fileSize}
+		)
+		
+	</insert>
+	
+	<update id="update" parameterType="com.abel.bean.UploadFile">
+		UPDATE upload_file
+		<set>
+			<if test = "id != null and id != '' ">
+				and id = #{id},
+			</if>
+			<if test = "fileName != null and fileName != '' ">
+				and file_name = #{fileName},
+			</if>
+			<if test = "fileType != null and fileType != '' ">
+				and file_type = #{fileType},
+			</if>
+			<if test = "filePath != null and filePath != '' ">
+				and file_path = #{filePath},
+			</if>
+			<if test = "uploadTime != null and uploadTime != '' ">
+				and upload_time = #{uploadTime},
+			</if>
+			<if test = "flag != null and flag != '' ">
+				and flag = #{flag},
+			</if>
+			<if test = "fileSize != null and fileSize != '' ">
+				and fileSize = #{fileSize},
+			</if>
+		</set>
+	</update>
+		
+	<delete id="delete" parameterType="Integer">
+		DELETE FROM upload_file WHERE id = #{id}
+	</delete>
+
+	<select id="getUploadFileList" resultType="com.abel.bean.UploadFile"
+			parameterType="com.abel.bean.RelationFile">
+		SELECT upload_file.* FROM
+		<include refid="getFileListQuery" />
+	</select>
+
+	<select id="deleteRelation" parameterType="com.abel.bean.RelationFile">
+		DELETE a FROM relation_file a
+		<where>
+			<if test="relationId !=null and relationId !=''">
+				AND a.relation_id=#{relationId}
+			</if>
+			<if test="fileId !=null and fileId !=''">
+				and a.file_id = #{fileId}
+			</if>
+			<if test="flag !=null and flag !=''">
+				and a.flag = #{flag}
+			</if>
+		</where>
+	</select>
+
+	<select id="deleteFile" parameterType="com.abel.bean.RelationFile">
+		DELETE b FROM
+		<choose>
+			<when test=" fileId !=null and fileId !=''">
+				upload_file b WHERE
+				b.id=#{fileId}
+			</when>
+			<when test=" relationId !=null and relationId !=''">
+				relation_file a ,
+				upload_file b WHERE
+				a.file_id=b.id
+				AND a.relation_id=#{relationId}
+				<if test="flag != null and flag !=''">
+					and a.flag = #{flag}
+				</if>
+			</when>
+		</choose>
+	</select>
+</mapper>

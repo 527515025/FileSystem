@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.abel.dao.RelationFileDao">
+    <resultMap id="relationFileMap" type="com.abel.bean.RelationFile">
+		<id property="id" column="id"/>
+		<result property="relationId" column="relation_id"/>
+		<result property="fileId" column="file_id"/>
+		<result property="createTime" column="create_time"/>
+		<result property="flag" column="flag"/>
+
+    </resultMap>
+    
+    <sql id="queryCondition">
+        <where>
+			<if test="id != null and id != ''">
+				and id = #{id}
+			</if>
+			<if test="relationId != null and relationId != ''">
+				and relation_id = #{relationId}
+			</if>
+			<if test="fileId != null and fileId != ''">
+				and file_id = #{fileId}
+			</if>
+			<if test="flag != null and flag != ''">
+				and flag = #{flag}
+			</if>
+			<if test="keywords != null and keywords != ''">
+				and (
+				id like concat('%',#{keywords},'%')
+				or relation_id like concat('%',#{keywords},'%')
+				or file_id like concat('%',#{keywords},'%')
+				or flag like concat('%',#{keywords},'%')
+				)
+			</if>
+
+        </where>
+    </sql>
+    	
+    <select id="getByMap" parameterType="map" resultMap="relationFileMap">
+    	SELECT * FROM relation_file
+		<include refid="queryCondition" />
+    </select>
+    
+    <select id="getById" parameterType="int" resultMap="relationFileMap">
+    	SELECT * FROM relation_file WHERE id =#{id}
+    </select>
+    
+    <insert id="create" parameterType="com.abel.bean.RelationFile">
+        <selectKey resultType="int"  order="AFTER" keyProperty="id" >
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO relation_file(
+			id,
+			relation_id,
+			file_id,
+			create_time,
+			flag
+		)VALUES(
+			#{id},
+			#{relationId},
+			#{fileId},
+			NOW(),
+			#{flag}
+		)
+    </insert>
+    
+    <update id="update" parameterType="com.abel.bean.RelationFile">
+		UPDATE relation_file 
+		<set>
+			<if test="relationId != null and relationId != ''">
+				relation_id = #{relationId},
+			</if>
+			<if test="fileId != null and fileId != ''">
+				file_id = #{fileId},
+			</if>
+			<if test="flag != null and flag != ''">
+				flag = #{flag}
+			</if>
+		</set>
+		WHERE id = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="int">
+    	DELETE FROM relation_file WHERE id = #{id}
+    </delete>
+
+	<insert id="batchCreateRelation" parameterType="java.util.List">
+		insert into relation_file (
+		relation_id,
+		file_id,
+		create_time,
+		flag
+		)
+		VALUES
+		<foreach collection="list" item="item" index="index"
+				 separator=",">
+			(
+			#{item.relationId},
+			#{item.fileId},
+			#{item.createTime},
+			#{item.flag}
+		    )
+		</foreach>
+	</insert>
+
+</mapper>
