@@ -30,6 +30,17 @@ public class DataSourceConfig {
         return dataSource;
     }
     
+    /**
+     * Multipart config element.
+     *
+     * @return the multipartconfigelement
+     */
+    @Bean
+    public MultipartConfigElement multipartConfigElement() {
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setMaxFileSize("10MB");
+        return factory.createMultipartConfig();
+    }
     
 }
 
